@@ -1,0 +1,88 @@
+model_list:
+  - model_name: gpt-4o
+    litellm_params:
+      model: openai/gpt-4o
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      rpm: 500
+      tpm: 100000
+      order: 1
+      weight: 1.0
+    model_info:
+      region: us-east-1
+      context_window: 128000
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: openai/gpt-4o-mini
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      rpm: 1000
+      tpm: 200000
+      order: 1
+    model_info:
+      region: us-east-1
+      context_window: 128000
+
+  - model_name: claude-sonnet
+    litellm_params:
+      model: anthropic/claude-sonnet-4-20250514
+      api_key: os.environ/ANTHROPIC_API_KEY
+      rpm: 200
+      tpm: 80000
+      order: 1
+    model_info:
+      region: us-east-1
+      context_window: 200000
+
+  - model_name: gemini-1.5-pro
+    litellm_params:
+      model: vertex/gemini-1.5-pro
+      api_key: os.environ/GOOGLE_APPLICATION_CREDENTIALS
+      rpm: 300
+      tpm: 100000
+      order: 1
+    model_info:
+      region: us-central1
+      context_window: 2000000
+
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 3
+  timeout: 30
+  allowed_fails: 3
+  cooldown_time: 60
+  fallbacks:
+    gpt-4o:
+      - claude-sonnet
+      - gpt-4o-mini
+  context_window_fallbacks: {}
+  default_fallback: null
+
+cache_params:
+  type: redis
+  host: os.environ/REDIS_HOST
+  port: 6379
+  db: 0
+  default_ttl: 86400
+  per_model_ttl: {}
+  supported_call_types:
+    - chat_completion
+    - embedding
+
+rate_limit_settings:
+  algorithm: sliding_window
+  key_prefix: "gateway:rl"
+
+general_settings:
+  master_key: os.environ/GATEWAY_MASTER_KEY
+  salt_key: os.environ/GATEWAY_SALT_KEY
+  port: 4000
+  log_level: INFO
+  auth_strategy: api_key  # api_key | jwt (v1.1)
+
+litellm_settings:
+  success_callbacks: []
+  failure_callbacks: []
+  slack_alerting: false
+  slack_webhook_url: os.environ/SLACK_WEBHOOK_URL
